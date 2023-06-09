@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TradingView Chart</title>
+  <style>
+    #chart-container {
+      width: 800px;
+      height: 500px;
+      float: left;
+    }
+
+    #trade-container {
+      margin-left: 820px;
+    }
+
+    #trade-form {
+      margin-bottom: 20px;
+    }
+
+    #trade-form button[type="submit"] {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: blue;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #trade-form button[type="Connect-wallet"] {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: blue;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #trade-form button[type="submit"]:hover {
+      background-color: darkblue;
+    }
+     #trade-form button[type="Connect-wallet"]:hover {
+      background-color: darkblue;
+    }
+
+    #trade-table {
+      width: 100%;
+    }
+
+    #trade-table th {
+      text-align: left;
+    }
+
+    #trade-table td {
+      padding: 8px;
+    }
+  </style>
+</head>
+<body style="background-color:#3b82f680">
+  <div id="chart-container"></div>
+
+  <div  id="trade-container">
+     <button id="Connect-wallet">Connect-wallet</button>
+    <h2 style="background-color:white">Trade Entry</h2>
+   
+    <form id="trade-form">
+      <label for="symbol-input">Symbol:</label>
+      <input type="text" id="symbol-input" required>
+      <label for="action-select">Action:</label>
+      <select id="action-select" required>
+        <option value="buy">Buy</option>
+        <option value="sell">Sell</option>
+      </select>
+      <label for="amount-input">Amount:</label>
+      <input type="number" id="amount-input" required step="0.01">
+      <button type="submit">Submit</button>
+      
+    </form>
+
+    <table id="trade-table">
+      <thead>
+        <tr>
+          <th>Trade ID</th>
+          <th>Symbol</th>
+          <th>Action</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="trade-table-body">
+        <!-- Trade data will be dynamically inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script type="text/javascript">
+    let tradeData = [];
+
+    function renderTradeData(trades) {
+      const tradeTableBody = document.getElementById('trade-table-body');
+      tradeTableBody.innerHTML = '';
+
+      trades.forEach((trade) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${trade.id}</td>
+          <td>${trade.symbol}</td>
+          <td>${trade.action}</td>
+          <td>${trade.amount}</td>
+        `;
+        tradeTableBody.appendChild(row);
+      });
+    }
+
+    function handleTradeFormSubmit(event) {
+      event.preventDefault();
+      const symbolInput = document.getElementById('symbol-input');
+      const actionSelect = document.getElementById('action-select');
+      const amountInput = document.getElementById('amount-input');
+
+      const symbol = symbolInput.value.trim();
+      const action = actionSelect.value;
+      const amount = parseFloat(amountInput.value.trim());
+
+      if (symbol && !isNaN(amount)) {
+        const newTrade = {
+          id: tradeData.length + 1,
+          symbol: symbol,
+          action: action,
+          amount: amount,
+        };
+        tradeData.push(newTrade);
+        renderTradeData(tradeData);
+        symbolInput.value = '';
+        actionSelect.selectedIndex = 0;
+        amountInput.value = '';
+      }
+    }
+
+    document.getElementById('trade-form').addEventListener('submit', handleTradeFormSubmit);
+
+    // Initialize the chart
+    new TradingView.widget({
+      "width": 800,
+      "height": 500,
+      "symbol": "BINANCE:BTCUSDT",
+      "interval": "D",
+      "timezone": "Etc/UTC",
+      "theme": "dark",
+      "style": "1",
+      "locale": "en",
+      "toolbar_bg": "#f1f3f6",
+      "enable_publishing": false,
+      "withdateranges": true,
+      "hide_side_toolbar": false,
+      "allow_symbol_change": true,
+      "container_id": "chart-container"
+    });
+
+    // Initial rendering of trade data
+    renderTradeData(tradeData);
+  </script>
+  
+  
+  <script src="https://unpkg.com/venom-connect"></script>
+    <script>
+      // Init VenomConnect with your own settings
+      const venomConnect = new VenomConnect.default({
+        // general settings for this library
+        theme: "light",
+        checkNetworkId: "1000",
+        checkNetworkName: "Venom Mainnet",
+        // list of settings for different wallets, connection methods
+        providersOptions: {
+          venomwallet: {
+            links: {
+              extension: undefined,
+              ios: undefined,
+              android: undefined,
+              qr: undefined,
+              apk: undefined,
+            },
+            walletWaysToConnect: [
+              {
+                type: "extension",
+                checkInstalledInterval: 1000,
+                checkInstalledTimeout: 30000,
+                checkInstalledMessage:
+                  "Please install the Venom Wallet extension to continue.",
+              },
+            ],
+            defaultWalletWaysToConnect: ["qr", "ios", "android", "apk"],
+          },
+        },
+      });
+
+      // Add an event listener to the button
+      document
+        .getElementById("Connect-wallet")
+        .addEventListener("click", () => {
+          // Connect to Venom Wallet when the button is clicked
+          venomConnect.connect("venomwallet").then((data) => {
+            console.log(data);
+          });
+        });
+    </script>
+</body>
+</html>
